@@ -22,13 +22,24 @@ regardless of which project you're working in. You do not add it to individual p
 ```bash
 git clone https://github.com/nventimiglia/gemini-docter D:/Tools/gemini-docter
 cd D:/Tools/gemini-docter
+```
+
+```windows
 py -3 -m pip install -r requirements.txt
+```
+
+```mac
+python3 -m pip install -r requirements.txt
 ```
 
 ### 2. Install hooks (once)
 
-```bash
+```windows
 py install_hooks.py
+```
+
+```mac
+python3 install_hooks.py
 ```
 
 This writes two entries into `~/.gemini/settings.json` pointing at the hook scripts in this
@@ -38,16 +49,26 @@ directory. After restarting Gemini CLI, every session will be captured automatic
 
 Run from the `gemini-docter` directory at any time:
 
-```bash
+```windows
 py run.py                 # full analysis of all captured sessions
 py run.py --rules         # generate rules for GEMINI.md
 py run.py status          # check hook health and provider availability
 ```
 
+```mac
+python3 run.py            # full analysis of all captured sessions
+python3 run.py --rules    # generate rules for GEMINI.md
+python3 run.py status     # check hook health and provider availability
+```
+
 ### Filtering to a specific project
 
-```bash
-py run.py -p myproject    # sessions where the working dir contains "myproject"
+```windows
+py run.py -p myproject
+```
+
+```mac
+python3 run.py -p myproject
 ```
 
 ### No hooks needed for Claude Code
@@ -55,19 +76,28 @@ py run.py -p myproject    # sessions where the working dir contains "myproject"
 Claude Code sessions are already stored in `~/.claude/projects/`. Use `--providers claude`
 to analyze them without any hook installation:
 
-```bash
+```windows
 py run.py --providers claude
-py run.py --providers gemini,claude   # both
+py run.py --providers gemini,claude
+```
+
+```mac
+python3 run.py --providers claude
+python3 run.py --providers gemini,claude
 ```
 
 ## Multi-provider support
 
 By default only the `gemini` provider (hook-captured transcripts) is enabled. To include other providers:
 
-```bash
-py run.py --providers gemini,claude       # also analyze Claude Code sessions
-py run.py --providers claude              # Claude Code only
-py run.py --providers gemini,claude,cursor,copilot  # all providers
+```windows
+py run.py --providers gemini,claude
+py run.py --providers gemini,claude,cursor,copilot
+```
+
+```mac
+python3 run.py --providers gemini,claude
+python3 run.py --providers gemini,claude,cursor,copilot
 ```
 
 | Provider | Source | Notes |
@@ -79,17 +109,22 @@ py run.py --providers gemini,claude,cursor,copilot  # all providers
 
 ## CLI reference
 
-```
-py run.py                       # analyze all sessions (gemini provider)
+```windows
+py run.py                       # analyze all sessions
 py run.py <session-id>          # check a specific session
-py run.py --rules               # generate rules for GEMINI.md
-py run.py --json                # output as JSON
-py run.py -p myproject          # filter to a project
-py run.py --providers a,b       # use specific providers
-py run.py status                # hook health + provider availability
+py run.py --rules               # generate rules
+py run.py status                # health check
+py run.py --install             # install hooks
+py run.py --uninstall           # remove hooks
+```
 
-py run.py --install             # install hooks into ~/.gemini/settings.json
-py run.py --uninstall           # remove gemini-docter hooks
+```mac
+python3 run.py                  # analyze all sessions
+python3 run.py <session-id>     # check a specific session
+python3 run.py --rules          # generate rules
+python3 run.py status           # health check
+python3 run.py --install        # install hooks
+python3 run.py --uninstall      # remove hooks
 ```
 
 ## Signals detected

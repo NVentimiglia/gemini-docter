@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import NamedTuple
 
 from .constants import (
     SUGGESTION_CORRECTION_MIN,
@@ -30,6 +31,11 @@ class SignalAggregation:
     affected_sessions: list[str] = field(default_factory=list)
 
 
+class Suggestion(NamedTuple):
+    rule: str
+    examples: list[str]
+
+
 def _aggregate_signals(signals: list[SignalResult]) -> list[SignalAggregation]:
     aggregations: dict[str, SignalAggregation] = {}
     for signal in signals:
@@ -51,88 +57,73 @@ def _aggregate_signals(signals: list[SignalResult]) -> list[SignalAggregation]:
     return sorted(aggregations.values(), key=lambda a: a.total_score)
 
 
-def generate_suggestions(signals: list[SignalResult]) -> list[str]:
-    suggestions: list[str] = []
+def generate_suggestions(signals: list[SignalResult]) -> list[Suggestion]:
+    suggestions: list[Suggestion] = []
     aggregated = _aggregate_signals(signals)
 
     for agg in aggregated:
+        examples = []
+        for s in signals:
+            if s.signal_name == agg.signal_name and s.examples:
+                examples.extend(s.examples)
+        
+        rule = None
         match agg.signal_name:
             case "edit-thrashing":
                 if agg.count >= SUGGESTION_EDIT_THRASHING_MIN:
-                    suggestions.append(
+                    rule = (
                         "Read the full file before editing. Plan all changes, then make ONE complete edit. "
                         "If you've edited a file 3+ times, stop and re-read the user's requirements."
                     )
             case "error-loop":
                 if agg.count >= SUGGESTION_ERROR_LOOP_MIN:
-                    suggestions.append(
+                    rule = (
                         "After 2 consecutive tool failures, stop and change your approach entirely. "
                         "Explain what failed and try a different strategy."
                     )
             case "negative-sentiment" | "correction-heavy":
                 if agg.count >= min(SUGGESTION_SENTIMENT_MIN, SUGGESTION_CORRECTION_MIN):
-                    suggestions.append(
+                    rule = (
                         "When the user corrects you, stop and re-read their message. "
                         "Quote back what they asked for and confirm before proceeding."
                     )
             case "user-interrupts":
                 if agg.count >= SUGGESTION_INTERRUPTS_MIN:
-                    suggestions.append(
+                    rule = (
                         "Break work into small, verifiable steps. "
                         "Confirm your approach with the user before making large changes."
                     )
             case "excessive-exploration":
                 if agg.count >= SUGGESTION_EXPLORATION_MIN:
-                    suggestions.append(
+                    rule = (
                         "Act sooner. Don't read more than 3-5 files before making a change. "
                         "Get a basic understanding, make the change, then iterate."
                     )
             case "keep-going-loop":
                 if agg.count >= SUGGESTION_KEEP_GOING_MIN:
-                    suggestions.append(
+                    rule = (
                         "Complete the FULL task before stopping. "
                         "If the user asked for multiple things, implement all of them before presenting results."
                     )
             case "repeated-instructions":
                 if agg.count >= SUGGESTION_REPETITION_MIN:
-                    suggestions.append(
-                        "Re-read the user's last message before responding. "
-                        "Follow through on every instruction completely."
-                    )
+                    rule = "Re-read the user's last message before responding. Follow through on every instruction completely."
             case "negative-drift":
                 if agg.count >= SUGGESTION_DRIFT_MIN:
-                    suggestions.append(
-                        "Every few turns, re-read the original request "
-                        "to make sure you haven't drifted from the goal."
-                    )
+                    rule = "Every few turns, re-read the original request to make sure you haven't drifted from the goal."
             case "rapid-corrections":
                 if agg.count >= SUGGESTION_RAPID_MIN:
-                    suggestions.append(
-                        "Double-check your output before presenting it. "
-                        "Verify that your changes actually address what the user asked for."
-                    )
+                    rule = "Double-check your output before presenting it. Verify that your changes address the user request."
             case "high-turn-ratio":
                 if agg.count >= SUGGESTION_TURN_RATIO_MIN:
-                    suggestions.append(
-                        "Work more autonomously. "
-                        "Make reasonable decisions without asking for confirmation on every step."
-                    )
+                    rule = "Work more autonomously. Make reasonable decisions without asking for confirmation on every step."
+
+        if rule:
+            suggestions.append(Suggestion(rule, examples[:3]))
 
     return suggestions
 
 
 def generate_gemini_rules(signals: list[SignalResult], total_sessions: int) -> str:
-    rules = generate_suggestions(signals)
-    if not rules:
-        return ""
-
-    lines = [
-        "## Rules (auto-generated by gemini-docter)",
-        "",
-        f"Based on analysis of {total_sessions} sessions. Paste into your GEMINI.md or AGENTS.md.",
-        "",
-    ]
-    for rule in rules:
-        lines.append(f"- {rule}")
-    lines.append("")
-    return "\n".join(lines)
+    # This is now handled by the analyzer/formatter to support references
+    pass

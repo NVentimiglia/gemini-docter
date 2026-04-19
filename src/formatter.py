@@ -45,24 +45,24 @@ def format_rules_block(rules: list[str], max_length: int = MAX_LINE_LENGTH) -> l
     return formatted
 
 
-def split_into_reference(rule: str, rule_index: int) -> tuple[str, str]:
-    """If a rule body exceeds 5 lines when wrapped, split into inline ref + detail.
+def format_example(example: str, threshold: int = 5) -> tuple[str, str | None]:
+    """Format an example. If it exceeds the threshold, return a reference link and the content.
 
-    Returns (inline_rule, detail_block) where detail_block is markdown suitable
-    for a references/ file.
+    Returns:
+        (display_text, reference_content)
+        If reference_content is None, the example stays inline.
     """
-    wrapped_lines = wrap_rule(f"- {rule}").splitlines()
-    if len(wrapped_lines) <= 5:
-        return f"- {rule}", ""
+    lines = example.strip().splitlines()
+    if len(lines) <= threshold:
+        # Keep inline, but format nicely
+        indented = "\n    ".join(lines)
+        return f"  - Example:\n    {indented}", None
 
-    # Keep first sentence as the inline rule
-    first_sentence_end = rule.find(". ")
-    if first_sentence_end > 0:
-        inline = rule[:first_sentence_end + 1]
-        detail = rule[first_sentence_end + 2:]
-    else:
-        inline = rule[:120]
-        detail = rule[120:]
+    # Move to reference
+    ref_id = f"ref_{abs(hash(example)) % 10000}"
+    return f"  - Example: (see references/{ref_id}.md)", example.strip()
 
-    detail_block = f"### Rule {rule_index + 1}\n{detail.strip()}\n"
-    return f"- {inline} (see rule {rule_index + 1})", detail_block
+
+def split_into_reference(rule: str, rule_index: int) -> tuple[str, str]:
+    """Placeholder for rule splitting (can be expanded later if needed)."""
+    return f"- {rule}", ""
