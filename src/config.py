@@ -11,7 +11,7 @@ from pathlib import Path
 CONFIG_PATH = Path.home() / ".gemini-docter" / "config.json"
 
 _DEFAULTS: dict = {
-    "providers": ["gemini"],  # Which providers to enable: "gemini", "claude", "cursor", "copilot"
+    "providers": ["gemini", "claude", "cursor", "copilot"],  # Which providers to enable: "gemini", "claude", "cursor", "copilot"
     "max_line_length": 80,
     "enable_rfc2119": True,
     "split_long_rules": False,  # Move rules >5 lines to references/
