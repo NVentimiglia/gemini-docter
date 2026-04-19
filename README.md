@@ -20,9 +20,9 @@ regardless of which project you're working in. You do not add it to individual p
 ### 1. Clone to a permanent location
 
 ```bash
-git clone https://github.com/you/gemini-docter D:/Tools/gemini-docter
+git clone https://github.com/nventimiglia/gemini-docter D:/Tools/gemini-docter
 cd D:/Tools/gemini-docter
-pip install -r requirements.txt
+py -3 -m pip install -r requirements.txt
 ```
 
 ### 2. Install hooks (once)
