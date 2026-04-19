@@ -35,7 +35,10 @@ class ClaudeProvider(BaseProvider):
             if not project_dir.is_dir():
                 continue
             project_name = self._decode_project_name(project_dir.name)
-            if project_filter and project_filter not in project_name:
+            if project_filter and (
+                project_filter not in project_name
+                and project_filter not in project_dir.name
+            ):
                 continue
 
             for jsonl_file in sorted(project_dir.glob("*.jsonl")):

@@ -54,11 +54,13 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
 
     providers = [p.strip() for p in args.providers.split(",")] if args.providers else None
 
-    # Auto-derive project filter from cwd when --save is used without -p
+    # Auto-derive project filter from cwd when not running from the tool's own directory
     project_filter = args.project
-    if args.save and not project_filter:
-        project_filter = _auto_project_filter()
-        print(f"Filtering to project: {project_filter}", file=sys.stderr)
+    if not project_filter:
+        tool_dir = Path(__file__).parent.parent.resolve()
+        if Path.cwd().resolve() != tool_dir:
+            project_filter = _auto_project_filter()
+            print(f"Auto-filtering to project: {project_filter}", file=sys.stderr)
 
     if args.session:
         report = generate_report(providers=providers, project_filter=project_filter)
@@ -192,6 +194,40 @@ def _cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_list(args: argparse.Namespace) -> int:
+    """List all captured projects and their session counts."""
+    from .analyzer import _collect_sessions_from_providers
+
+    providers = [p.strip() for p in args.providers.split(",")] if getattr(args, "providers", None) else None
+    sessions = _collect_sessions_from_providers(providers)
+
+    if not sessions:
+        print("No sessions found.")
+        print("Install hooks with: py run.py --install")
+        return 0
+
+    projects: dict[str, int] = {}
+    for s in sessions:
+        name = s.project_name or "(unknown)"
+        projects[name] = projects.get(name, 0) + 1
+
+    print(f"{'Project':<40} {'Sessions':>8}  {'Provider'}")
+    print("-" * 60)
+    by_project: dict[str, list] = {}
+    for s in sessions:
+        name = s.project_name or "(unknown)"
+        by_project.setdefault(name, []).append(s)
+
+    for name in sorted(by_project):
+        slist = by_project[name]
+        providers_seen = ", ".join(sorted({s.provider for s in slist}))
+        print(f"{name:<40} {len(slist):>8}  {providers_seen}")
+
+    print()
+    print(f"Total: {len(sessions)} session(s) across {len(by_project)} project(s)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="gemini-docter",
@@ -220,10 +256,17 @@ def main(argv: list[str] | None = None) -> int:
     # Status subcommand
     sub.add_parser("status", help="Show hook health and provider availability")
 
+    # List subcommand
+    list_parser = sub.add_parser("list", help="List all captured projects and session counts")
+    list_parser.add_argument("--providers", help="Comma-separated providers: gemini,claude,cursor,copilot")
+
     args = parser.parse_args(argv)
 
     if args.command == "status":
         return _cmd_status(args)
+
+    if args.command == "list":
+        return _cmd_list(args)
 
     return _cmd_analyze(args)
 

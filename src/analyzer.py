@@ -180,7 +180,8 @@ def format_report_text(report: AnalysisReport) -> str:
         lines.append("## Suggested rules for GEMINI.md / AGENTS.md")
         lines.append("")
         for suggestion in report.suggestions:
-            lines.append(f"- {suggestion}")
+            rule = suggestion.rule if hasattr(suggestion, "rule") else str(suggestion)
+            lines.append(f"- {rule}")
         lines.append("")
 
     return "\n".join(lines)

@@ -47,28 +47,56 @@ directory. After restarting Gemini CLI, every session will be captured automatic
 
 ### 3. Analyze
 
-Run from the `gemini-docter` directory at any time:
+First, see what projects have been captured:
 
 ```windows
-py run.py                 # full analysis of all captured sessions
-py run.py --rules         # generate rules for GEMINI.md
-py run.py status          # check hook health and provider availability
+py D:/Tools/gemini-docter/run.py list
 ```
 
 ```mac
-python3 run.py            # full analysis of all captured sessions
-python3 run.py --rules    # generate rules for GEMINI.md
-python3 run.py status     # check hook health and provider availability
+python3 ~/Tools/gemini-docter/run.py list
 ```
 
-### Filtering to a specific project
+This prints a table of all projects and session counts so you know what names to use.
+
+Then run from **your project folder** — it automatically scopes to that project:
 
 ```windows
-py run.py -p myproject
+cd D:/Projects/my-app
+py D:/Tools/gemini-docter/run.py           # analyze this project's sessions
+py D:/Tools/gemini-docter/run.py --rules   # print rules for GEMINI.md
+py D:/Tools/gemini-docter/run.py --save    # write rules into ./GEMINI.md
 ```
 
 ```mac
-python3 run.py -p myproject
+cd ~/Projects/my-app
+python3 ~/Tools/gemini-docter/run.py           # analyze this project's sessions
+python3 ~/Tools/gemini-docter/run.py --rules   # print rules for GEMINI.md
+python3 ~/Tools/gemini-docter/run.py --save    # write rules into ./GEMINI.md
+```
+
+Use `-p NAME` to filter by a specific project name from the list output:
+
+```windows
+py D:/Tools/gemini-docter/run.py -p my-app
+```
+
+```mac
+python3 ~/Tools/gemini-docter/run.py -p my-app
+```
+
+To analyze all projects at once, run from the gemini-docter directory itself:
+
+```windows
+cd D:/Tools/gemini-docter
+py run.py status   # check hook health and provider availability
+py run.py          # full analysis of all captured sessions
+```
+
+```mac
+cd ~/Tools/gemini-docter
+python3 run.py status
+python3 run.py
 ```
 
 ### No hooks needed for Claude Code
@@ -110,21 +138,27 @@ python3 run.py --providers gemini,claude,cursor,copilot
 ## CLI reference
 
 ```windows
-py run.py                       # analyze all sessions
+py run.py list                  # list all projects and session counts
+py run.py                       # analyze all sessions (auto-scopes to current project)
 py run.py <session-id>          # check a specific session
-py run.py --rules               # generate rules
+py run.py --rules               # generate rules for GEMINI.md
+py run.py --save                # write rules into GEMINI.md in current directory
+py run.py -p myproject          # filter to a named project
 py run.py status                # health check
 py run.py --install             # install hooks
 py run.py --uninstall           # remove hooks
 ```
 
 ```mac
-python3 run.py                  # analyze all sessions
-python3 run.py <session-id>     # check a specific session
-python3 run.py --rules          # generate rules
-python3 run.py status           # health check
-python3 run.py --install        # install hooks
-python3 run.py --uninstall      # remove hooks
+python3 run.py list
+python3 run.py
+python3 run.py <session-id>
+python3 run.py --rules
+python3 run.py --save
+python3 run.py -p myproject
+python3 run.py status
+python3 run.py --install
+python3 run.py --uninstall
 ```
 
 ## Signals detected
